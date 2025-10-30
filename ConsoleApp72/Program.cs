@@ -11,7 +11,7 @@
 
             while (running)
             {
-                Console.WriteLine("Choose an option!");
+                Console.WriteLine("Choose an option:");
                 Console.WriteLine("1. Create account.");
                 Console.WriteLine("2. Login to existing account.");
                 Console.WriteLine("3. Exit.");
@@ -26,29 +26,36 @@
                         Login(users);
                         break;
                     case "3":
-                        Console.WriteLine("Goodbye :)");
+                        Console.WriteLine("Goodbye!");
                         running = false;
                         break;
                     default:
-                        Console.WriteLine("Invalid option!");
+                        Console.WriteLine("Invalid choice!");
                         break;
                 }
             }
-
         }
-
         static void CreateAccount(List<User> users)
         {
-            Console.Write("Enter your name: ");
+            Console.Write("Enter name: ");
             string name = Console.ReadLine();
-            Console.Write("Enter your login: ");
+            Console.Write("Enter login: ");
             string login = Console.ReadLine();
 
-            bool loginExists = users.Exists(u => u.HasLogin(login));
+            bool accountExist = false;
 
-            if (loginExists)
+            foreach (User u in users)
             {
-                Console.WriteLine("This login already exists! Please choose another one.");
+                if (u.LoginExist(login))
+                {
+                    accountExist = true;
+                    break;
+                }
+            }
+
+            if (accountExist)
+            {
+                Console.WriteLine("Account with this login already exists!");
                 return;
             }
 
@@ -57,15 +64,15 @@
             Console.Write("Confirm password: ");
             string confirm = Console.ReadLine();
 
-            if (confirm == password)
+            if (password == confirm)
             {
-                User newuser = new User(name, login, password);
-                users.Add(newuser);
                 Console.WriteLine("Account created!");
+                User newUser = new User(name, login, password);
+                users.Add(newUser);
             }
             else
             {
-                Console.WriteLine("Passwords don't match!");
+                Console.WriteLine("Passwords don't match.");
             }
         }
 
@@ -76,16 +83,25 @@
             Console.Write("Enter password: ");
             string password = Console.ReadLine();
 
-            User foundUser = users.Find(u => u.CheckCredentials(login, password));
+            User found = null;
 
-            if (foundUser != null)
+            foreach (User u in users)
             {
-                Console.WriteLine("Welcome back, " + foundUser.GetName());
-                foundUser.ManageBankAccount();
+                if (u.CheckCredentials(login, password))
+                {
+                    found = u;
+                    break;
+                }
+            }
+
+            if (found != null)
+            {
+                Console.WriteLine("Logged in!");
+                found.AccountManagement();
             }
             else
             {
-                Console.WriteLine("Wrong login or password!");
+                Console.WriteLine("Wrong login or password.");
             }
         }
 
@@ -110,18 +126,12 @@
                 return Login == login && Password == password;
             }
 
-            public bool HasLogin(string login)
+            public bool LoginExist(string login)
             {
                 return Login == login;
             }
 
-            public string GetName()
-            {
-                return Name;
-            }
-
-
-            public void ManageBankAccount()
+            public void AccountManagement()
             {
                 bool inAccount = true;
 
@@ -132,7 +142,6 @@
                     Console.WriteLine("2. Deposit.");
                     Console.WriteLine("3. Withdraw.");
                     Console.WriteLine("4. Logout.");
-
                     string choice = Console.ReadLine();
 
                     switch (choice)
@@ -151,7 +160,7 @@
                             inAccount = false;
                             break;
                         default:
-                            Console.WriteLine("Invalid option!");
+                            Console.WriteLine("Invalid option.");
                             break;
                     }
                 }
@@ -169,46 +178,44 @@
 
             public void ShowBalance()
             {
-                Console.WriteLine("Your current balance: " + Balance + " USD.");
+                Console.WriteLine("Your current balance: " + Balance + " USD");
             }
 
             public void Deposit()
             {
-                Console.Write("Enter amount to deposit: ");
+                Console.Write("Amount you want to deposit: ");
                 decimal deposit = Convert.ToDecimal(Console.ReadLine());
 
                 if (deposit <= 0)
                 {
-                    Console.WriteLine("Invalid amount.");
+                    Console.WriteLine("Invalid amount!");
                 }
                 else
                 {
                     Balance += deposit;
-                    Console.WriteLine("Your current balance: " + Balance + " USD.");
+                    Console.WriteLine("Your current balance: " + Balance + " USD");
                 }
             }
 
             public void Withdraw()
             {
-                Console.Write("Enter amount to withdraw: ");
+                Console.Write("Amount you want to withdraw: ");
                 decimal withdraw = Convert.ToDecimal(Console.ReadLine());
 
-                if (Balance < withdraw)
+                if (withdraw > Balance)
                 {
-                    Console.WriteLine("You dont have enough balance!");
+                    Console.WriteLine("You don't have enough balance.");
                 }
                 else if (withdraw <= 0)
                 {
-                    Console.WriteLine("Invalid amount.");
+                    Console.WriteLine("Invalid amount!");
                 }
                 else
                 {
                     Balance -= withdraw;
-                    Console.WriteLine("Your current balance: " + Balance + " USD.");
+                    Console.WriteLine("Your current balance: " + Balance + " USD");
                 }
-
             }
         }
-
     }
 }
