@@ -59,6 +59,26 @@
                 return;
             }
 
+            Console.WriteLine("Choose account type:");
+            Console.WriteLine("1. Business Account.");
+            Console.WriteLine("2. Savings Account");
+            string accountType = Console.ReadLine();
+            BankAccount account;
+
+            if (accountType == "1")
+            {
+                account = new BusinessAccount();
+            }
+            else if (accountType == "2")
+            {
+                account = new SavingsAccount();
+            }
+            else
+            {
+                Console.WriteLine("Invalid option.");
+                return;
+            }
+
             Console.Write("Enter password: ");
             string password = Console.ReadLine();
             Console.Write("Confirm password: ");
@@ -67,7 +87,7 @@
             if (password == confirm)
             {
                 Console.WriteLine("Account created!");
-                User newUser = new User(name, login, password);
+                User newUser = new User(name, login, password, account);
                 users.Add(newUser);
             }
             else
@@ -112,13 +132,12 @@
             private string Password { get; set; }
             private BankAccount account { get; set; }
 
-            public User(string name, string login, string password)
+            public User(string name, string login, string password, BankAccount acc)
             {
                 Name = name;
                 Login = login;
                 Password = password;
-
-                account = new BankAccount();
+                account = acc;
             }
 
             public bool CheckCredentials(string login, string password)
@@ -141,7 +160,8 @@
                     Console.WriteLine("1. Show balance.");
                     Console.WriteLine("2. Deposit.");
                     Console.WriteLine("3. Withdraw.");
-                    Console.WriteLine("4. Logout.");
+                    Console.WriteLine("4. Add interest (only for savings account).");
+                    Console.WriteLine("5. Logout.");
                     string choice = Console.ReadLine();
 
                     switch (choice)
@@ -156,6 +176,16 @@
                             account.Withdraw();
                             break;
                         case "4":
+                            if(account is SavingsAccount savings)
+                            {
+                                savings.AddInterestRate();
+                            }
+                            else
+                            {
+                                Console.WriteLine("This option is available only for Savings Accounts.");
+                            }
+                            break;
+                        case "5":
                             Console.WriteLine("Logged out.");
                             inAccount = false;
                             break;
@@ -169,19 +199,19 @@
 
         class BankAccount
         {
-            private decimal Balance { get; set; }
+            protected decimal Balance { get; set; }
 
             public BankAccount()
             {
                 Balance = 1000;
             }
 
-            public void ShowBalance()
+            public virtual void ShowBalance()
             {
                 Console.WriteLine("Your current balance: " + Balance + " USD");
             }
 
-            public void Deposit()
+            public virtual void Deposit()
             {
                 Console.Write("Amount you want to deposit: ");
                 decimal deposit = Convert.ToDecimal(Console.ReadLine());
@@ -197,7 +227,7 @@
                 }
             }
 
-            public void Withdraw()
+            public virtual void Withdraw()
             {
                 Console.Write("Amount you want to withdraw: ");
                 decimal withdraw = Convert.ToDecimal(Console.ReadLine());
@@ -215,6 +245,45 @@
                     Balance -= withdraw;
                     Console.WriteLine("Your current balance: " + Balance + " USD");
                 }
+            }
+        }
+
+        class BusinessAccount : BankAccount
+        {
+            private decimal WithdrawFee = 5;
+
+            public override void Withdraw()
+            {
+                Console.Write("Amount you want to withdraw: ");
+                decimal withdraw = Convert.ToDecimal(Console.ReadLine());
+
+                decimal total = withdraw + WithdrawFee;
+
+                if(total > Balance)
+                {
+                    Console.WriteLine("You don't have enough balance.");
+                }
+                else if(total <= 0)
+                {
+                    Console.WriteLine("Invalid amount!");
+                }
+                else
+                {
+                    Balance -= total;
+                    Console.WriteLine("Your current balance: " + Balance + " USD.");
+                }
+            }
+        }
+
+        class SavingsAccount : BankAccount
+        {
+            private decimal InterestRate = 0.03m;
+
+            public void AddInterestRate()
+            {
+                decimal interest = Balance * InterestRate;
+                Balance += interest;
+                Console.WriteLine("Interest added: " + interest + " USD. Current balance: " + Balance);
             }
         }
     }
